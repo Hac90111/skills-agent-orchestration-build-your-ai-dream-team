@@ -1,0 +1,52 @@
+{
+  "projects": [
+    {
+      "name": "Northstar onboarding",
+      "owner": "Maya Chen",
+      "status": "On track",
+      "recentActivity": "New welcome flow is ready for a final review.",
+      "priority": "High",
+      "summary": "Make every new teammate feel at home from their very first day."
+    },
+    {
+      "name": "Atlas design system",
+      "owner": "Jordan Lee",
+      "status": "In progress",
+      "recentActivity": "Button and form components shipped to the shared library.",
+      "priority": "Medium",
+      "summary": "Give product teams a consistent, accessible set of building blocks."
+    },
+    {
+      "name": "Customer voice",
+      "owner": "Priya Patel",
+      "status": "At risk",
+      "recentActivity": "Interview scheduling is behind; two sessions need new times.",
+      "priority": "High",
+      "summary": "Turn customer conversations into clear, actionable product insight."
+    },
+    {
+      "name": "Field notes",
+      "owner": "Elliot Brooks",
+      "status": "Planning",
+      "recentActivity": "The first research questions are ready for team input.",
+      "priority": "Low",
+      "summary": "Create a simple home for the stories and learnings we collect."
+    },
+    {
+      "name": "Launch readiness",
+      "owner": "Sam Rivera",
+      "status": "On track",
+      "recentActivity": "Support and marketing reviewed the launch checklist.",
+      "priority": "Medium",
+      "summary": "Bring every launch detail together so the team can ship with confidence."
+    },
+    {
+      "name": "Signal analytics",
+      "owner": "Avery Kim",
+      "status": "In progress",
+      "recentActivity": "Dashboard events are mapped; validation starts this week.",
+      "priority": "Low",
+      "summary": "Help the team see which product moments are making a difference."
+    }
+  ]
+}

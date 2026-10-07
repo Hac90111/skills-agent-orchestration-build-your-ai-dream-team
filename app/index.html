@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f6f3">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="topbar">
+        <a class="brand" href="#main-content" aria-label="Project Pulse home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M5 18h5l3.2-8 5.1 14 3.1-8H27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span>Project <strong>Pulse</strong></span>
+        </a>
+        <p class="topbar-note"><span class="live-dot" aria-hidden="true"></span> Team overview</p>
+      </header>
+
+      <div class="dashboard-content" id="main-content">
+        <section class="intro" aria-labelledby="page-title">
+          <div class="intro-copy">
+            <p class="eyebrow">A clearer view of what’s moving</p>
+            <h1 id="page-title">Good work, in motion.</h1>
+            <p class="intro-description">A quick read on the projects, people, and priorities shaping the team right now.</p>
+          </div>
+          <div class="intro-aside" aria-label="Dashboard update frequency">
+            <span class="update-icon" aria-hidden="true">↻</span>
+            <span>Live project overview</span>
+          </div>
+        </section>
+
+        <section class="overview" aria-label="Project overview">
+          <article class="overview-card overview-total">
+            <span class="overview-label">Projects in view</span>
+            <strong class="overview-value" id="total-count">—</strong>
+            <span class="overview-detail">Across the team</span>
+          </article>
+          <article class="overview-card overview-attention">
+            <span class="overview-label">Needs a closer look</span>
+            <strong class="overview-value" id="attention-count">—</strong>
+            <span class="overview-detail">At risk or high priority</span>
+          </article>
+          <article class="overview-card overview-owners">
+            <span class="overview-label">People moving it forward</span>
+            <strong class="overview-value" id="owner-count">—</strong>
+            <span class="overview-detail">Project owners</span>
+          </article>
+        </section>
+
+        <section class="projects-section" aria-labelledby="projects-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">The latest from your team</p>
+              <h2 id="projects-heading">Project overview</h2>
+            </div>
+            <p class="section-caption">Status, momentum, and what’s next</p>
+          </div>
+          <p class="load-message" id="load-message" role="status" aria-live="polite">Loading project updates…</p>
+          <div class="project-grid" id="project-list" aria-busy="true"></div>
+        </section>
+
+        <footer class="footer">
+          <span class="footer-mark" aria-hidden="true">✳</span>
+          <span>Small steps add up. Keep the momentum going.</span>
+        </footer>
+      </div>
+    </main>
+
+    <script>
+      const projectList = document.querySelector("#project-list");
+      const loadMessage = document.querySelector("#load-message");
+      const totalCount = document.querySelector("#total-count");
+      const attentionCount = document.querySelector("#attention-count");
+      const ownerCount = document.querySelector("#owner-count");
+
+      const statusStyles = {
+        "On track": "on-track",
+        "In progress": "in-progress",
+        "At risk": "at-risk",
+        "Planning": "planning"
+      };
+      const priorityStyles = {
+        "High": "high",
+        "Medium": "medium",
+        "Low": "low"
+      };
+
+      function makeBadge(label, className, prefix) {
+        const badge = document.createElement("span");
+        badge.className = `badge ${prefix}-${className}`;
+        badge.textContent = label;
+        return badge;
+      }
+
+      function makeProjectCard(project) {
+        const card = document.createElement("article");
+        card.className = "project-card";
+
+        const headingRow = document.createElement("div");
+        headingRow.className = "card-heading";
+        const heading = document.createElement("h3");
+        heading.className = "project-name";
+        heading.textContent = project.name;
+        const priority = makeBadge(project.priority, priorityStyles[project.priority] || "other", "priority");
+        priority.setAttribute("aria-label", `Priority: ${project.priority}`);
+        headingRow.append(heading, priority);
+
+        const summary = document.createElement("p");
+        summary.className = "project-summary";
+        summary.textContent = project.summary;
+
+        const activity = document.createElement("div");
+        activity.className = "activity";
+        const activityLabel = document.createElement("span");
+        activityLabel.className = "field-label";
+        activityLabel.textContent = "RECENT ACTIVITY";
+        const activityText = document.createElement("p");
+        activityText.className = "activity-text";
+        activityText.textContent = project.recentActivity;
+        activity.append(activityLabel, activityText);
+
+        const cardFooter = document.createElement("div");
+        cardFooter.className = "card-footer";
+        const owner = document.createElement("span");
+        owner.className = "owner";
+        const ownerInitials = document.createElement("span");
+        ownerInitials.className = "owner-avatar";
+        ownerInitials.setAttribute("aria-hidden", "true");
+        ownerInitials.textContent = project.owner
+          .split(/\s+/)
+          .map((part) => part[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+        const ownerName = document.createElement("span");
+        ownerName.textContent = project.owner;
+        owner.append(ownerInitials, ownerName);
+
+        const status = makeBadge(project.status, statusStyles[project.status] || "other", "status");
+        status.setAttribute("aria-label", `Status: ${project.status}`);
+        cardFooter.append(owner, status);
+
+        card.append(headingRow, summary, activity, cardFooter);
+        return card;
+      }
+
+      function showError(message) {
+        loadMessage.textContent = message;
+        loadMessage.classList.add("load-message-error");
+        projectList.replaceChildren();
+        projectList.setAttribute("aria-busy", "false");
+      }
+
+      async function loadProjects() {
+        try {
+          const response = await fetch("project-data.json");
+          if (!response.ok) {
+            throw new Error(`Project data request failed (${response.status}).`);
+          }
+
+          const data = await response.json();
+          if (!data || !Array.isArray(data.projects)) {
+            throw new Error("Project data must contain a projects array.");
+          }
+
+          const projects = data.projects;
+          if (projects.some((project) =>
+            !project.name || !project.owner || !project.status ||
+            !project.recentActivity || !project.priority || !project.summary
+          )) {
+            throw new Error("One or more project records are missing required details.");
+          }
+
+          if (projects.length === 0) {
+            loadMessage.textContent = "No projects to show just yet. Check back when your team adds an update.";
+            totalCount.textContent = "0";
+            attentionCount.textContent = "0";
+            ownerCount.textContent = "0";
+            projectList.setAttribute("aria-busy", "false");
+            return;
+          }
+
+          projectList.replaceChildren(...projects.map(makeProjectCard));
+          totalCount.textContent = String(projects.length);
+          attentionCount.textContent = String(projects.filter((project) =>
+            project.status === "At risk" || project.priority === "High"
+          ).length);
+          ownerCount.textContent = String(new Set(projects.map((project) => project.owner)).size);
+          loadMessage.hidden = true;
+          projectList.setAttribute("aria-busy", "false");
+        } catch (error) {
+          showError(`We couldn’t load project updates. ${error.message} Please try again in a moment.`);
+          totalCount.textContent = "—";
+          attentionCount.textContent = "—";
+          ownerCount.textContent = "—";
+        }
+      }
+
+      loadProjects();
+    </script>
+  </body>
+</html>
